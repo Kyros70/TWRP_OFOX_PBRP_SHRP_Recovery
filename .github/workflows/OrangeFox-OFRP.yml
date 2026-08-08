@@ -104,8 +104,8 @@ jobs:
         set -euo pipefail
         cd "${{ env.ORANGEFOX_ROOT }}/bootable/recovery"
         sed -i '1i #include <linux/input.h>\n#include <dirent.h>\n#include <cstring>' minuitwrp/events.cpp
-        git apply --check "${GITHUB_WORKSPACE}/OrangeFox/${{ inputs.DEVICE_PATH }}/patches/0001-events-cpp-ff-vibrator.patch"
-        git apply "${GITHUB_WORKSPACE}/OrangeFox/${{ inputs.DEVICE_PATH }}/patches/0001-events-cpp-ff-vibrator.patch"
+        git apply --check "${{ env.ORANGEFOX_ROOT }}/${{ inputs.DEVICE_PATH }}/patches/0001-events-cpp-ff-vibrator.patch"
+        git apply "${{ env.ORANGEFOX_ROOT }}/${{ inputs.DEVICE_PATH }}/patches/0001-events-cpp-ff-vibrator.patch"
         echo "Patched events.cpp successfully"
 
     - name: Apply graphics_drm.cpp fix
