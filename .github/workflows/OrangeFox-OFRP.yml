@@ -102,9 +102,9 @@ jobs:
     - name: Apply vibrator FF fallback fix
       run: |
         set -euo pipefail
+        sudo apt-get install -y patch
         cd "${{ env.ORANGEFOX_ROOT }}/bootable/recovery"
-        git apply --check "${{ env.ORANGEFOX_ROOT }}/${{ inputs.DEVICE_PATH }}/patches/0001-events-cpp-ff-vibrator.patch"
-        git apply "${{ env.ORANGEFOX_ROOT }}/${{ inputs.DEVICE_PATH }}/patches/0001-events-cpp-ff-vibrator.patch"
+        patch -p1 --fuzz=5 < "${{ env.ORANGEFOX_ROOT }}/${{ inputs.DEVICE_PATH }}/patches/0001-events-cpp-ff-vibrator.patch"
         echo "Patched events.cpp successfully"
 
     - name: Apply graphics_drm.cpp fix
