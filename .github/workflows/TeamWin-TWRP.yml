@@ -6,7 +6,7 @@ on:
       MANIFEST_BRANCH:
         description: 'TWRP Manifest Branch'
         required: true
-        default: ''
+        default: 'twrp-12.1'
         type: choice
         options:
         - twrp-14.1
@@ -24,27 +24,27 @@ on:
       DEVICE_TREE:
         description: 'Custom Recovery Tree' # Your already made Device Tree for TWRP
         required: true
-        default: 'https://github.com/username/repo'
+        default: 'https://github.com/Kyros70/android_device_freeyond_m5a_recovery'
       DEVICE_TREE_BRANCH:
         description: 'Custom Recovery Tree Branch' # Your Device Tree Branch, make sure it's right.
         required: true
-        default: 'enter_your_branch'
+        default: 'TWRP'
       DEVICE_PATH:
         description: 'DEVICE_PATH'
         required: true
-        default: 'device/'
+        default: 'device/chinoe/M5A'
       DEVICE_NAME:
         description: 'DEVICE_NAME'
         required: true
-        default: ''
+        default: 'M5A'
       MAKEFILE_NAME:
         description: 'MAKEFILE_NAME (excluding .mk extension, Example: omni_7304F)'
         required: true
-        default: 'omni_'
+        default: 'twrp_M5A'
       BUILD_TARGET:
         description: 'Specify your Build Target' # Pick among boot, recovery and vendor_boot
         required: true
-        default: 'recovery'
+        default: 'vendorboot'
         type: choice
         options:
         - boot
@@ -141,9 +141,23 @@ jobs:
     - name: Clone Device Tree
       run: |
         cd android-recovery
-        git clone ${{ inputs.DEVICE_TREE }} -b ${{ inputs.DEVICE_TREE_BRANCH }} ./${{ inputs.DEVICE_PATH }}
+        git clone "https://${{ secrets.PAT }}@github.com/Kyros70/android_device_freeyond_m5a_recovery" -b ${{ inputs.DEVICE_TREE_BRANCH }} ./${{ inputs.DEVICE_PATH }}
         echo "COMMIT_ID=$(git rev-parse HEAD)" >> $GITHUB_ENV
 
+    - name: Apply vibrator FF fallback fix
+      run: |
+        set -euo pipefail
+        sudo apt-get install -y patch
+        cd "android-recovery/bootable/recovery"
+        patch -p1 --fuzz=5 < "android-recovery/${{ inputs.DEVICE_PATH }}/patches/0001-events-cpp-ff-vibrator.patch"
+        echo "Patched events.cpp successfully"
+
+    - name: Apply graphics_drm.cpp fix
+      run: |
+        curl -fL "https://raw.githubusercontent.com/kyros70/android_bootable_recovery/android-12.1/minuitwrp/graphics_drm.cpp" \
+          -o "android-recovery/bootable/recovery/minuitwrp/graphics_drm.cpp"
+        echo "Patched graphics_drm.cpp: $(wc -l < android-recovery/bootable/recovery/minuitwrp/graphics_drm.cpp) lines"
+        
     - name: Installing python2 for legacy builds
       if: env.CHECK_LEGACY_BRANCH == 'true'
       run: |
@@ -167,10 +181,11 @@ jobs:
       with:
         files: |
           android-recovery/out/target/product/${{ inputs.DEVICE_NAME }}/${{ inputs.BUILD_TARGET }}.img
-          android-recovery/out/target/product/${{ inputs.DEVICE_NAME }}/*installer*zip
-          android-recovery/out/target/product/${{ inputs.DEVICE_NAME }}/ramdisk-recovery.*
-          android-recovery/out/target/product/${{ inputs.DEVICE_NAME }}/vbmeta.*
-        name: Unofficial TWRP for ${{ inputs.DEVICE_NAME }} // ${{ env.BUILD_DATE }}
+          android-recovery/out/target/product/${{ inputs.DEVICE_NAME }}/*.img
+          android-recovery/out/target/product/${{ inputs.DEVICE_NAME }}/*vendor*
+          android-recovery/out/target/product/${{ inputs.DEVICE_NAME }}/*.zip
+          
+        name: TWRP for ${{ inputs.DEVICE_NAME }} (Unofficial)
         tag_name: ${{ github.run_id }}
         body: |
           Build: ${{ inputs.MANIFEST_BRANCH }}
