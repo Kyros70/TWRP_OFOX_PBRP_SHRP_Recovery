@@ -15,11 +15,11 @@ on:
       DEVICE_TREE:
         description: 'Custom Recovery Tree' # Your already made Device Tree for TWRP
         required: true
-        default: 'https://github.com/Kyros70/android_device_freeyond_m5a_twrp'
+        default: 'https://github.com/Kyros70/android_device_freeyond_m5a_recovery'
       DEVICE_TREE_BRANCH:
         description: 'Your Custom Recovery Tree Branch' # Your Device Tree Branch, make sure it's right.
         required: true
-        default: 'android-12.1'
+        default: 'PBRP'
       DEVICE_NAME:
         description: 'Specify your Device Codename' # As is, just like your PRODUCT_DEVICE in your device tree.
         required: true
@@ -116,7 +116,7 @@ jobs:
     - name: Clone Device Tree
       run: |
         pushd android-recovery
-        git clone ${{ inputs.DEVICE_TREE }} -b ${{ inputs.DEVICE_TREE_BRANCH }} ./${{ inputs.DEVICE_PATH }}
+        git clone "https://${{ secrets.PAT }}@github.com/Kyros70/android_device_freeyond_m5a_recovery" -b ${{ inputs.DEVICE_TREE_BRANCH }} ./${{ inputs.DEVICE_PATH }}
         cd ${{ inputs.DEVICE_PATH }}
         echo "COMMIT_ID=$(git rev-parse HEAD)" >> $GITHUB_ENV
         popd
@@ -148,11 +148,26 @@ jobs:
         wget https://github.com/cd-Crypton/custom-recovery-extras/raw/main/missing-font.zip
         unzip -o missing-font.zip
 
-    - name: Apply graphics_drm.cpp fix
+    - name: Apply DRM patch
       run: |
         curl -fL "https://raw.githubusercontent.com/kyros70/android_bootable_recovery/android-12.1/minuitwrp/graphics_drm.cpp" \
           -o "${{ github.workspace }}/android-recovery/bootable/recovery/minuitwrp/graphics_drm.cpp"
-        echo "Patched graphics_drm.cpp"
+        echo "Patched graphics_drm.cpp successfully"
+
+    - name: Apply vibrator FF fallback patch
+      run: |
+        set -euo pipefail
+        sudo apt-get install -y patch
+        cd "$GITHUB_WORKSPACE/android-recovery/bootable/recovery"
+        patch -p1 --fuzz=5 < "$GITHUB_WORKSPACE/android-recovery/${{ inputs.DEVICE_PATH }}/patches/0001-events-cpp-ff-vibrator-pbrp.patch"
+        echo "Patched events.cpp successfully"
+
+    - name: Apply flashlight patch
+      run: |
+        set -euo pipefail
+        cd "$GITHUB_WORKSPACE/android-recovery/bootable/recovery"
+        patch -p1 --fuzz=5 < "$GITHUB_WORKSPACE/android-recovery/${{ inputs.DEVICE_PATH }}/patches/0001-action-cpp-sprd-flash-flashlight.patch"
+        echo "Patched action.cpp successfully"
 
     - name: Building PitchBlack
       run: |
