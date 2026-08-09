@@ -29,7 +29,7 @@ on:
         required: true
         default: 'device/chinoe/M5A'
       BUILD_TARGET:
-        description: 'Specify your Build Target (choose "pbrp" instead of "recovery" for Android 11 or above)' # Pick among boot, recovery and vendor_boot
+        description: 'Specify your Build Target (choose "pbrp" instead of "recovery" for Android 11 or above)' # Pick among boot, recovery and vendor_boot.
         required: true
         default: 'vendorboot'
         type: choice
