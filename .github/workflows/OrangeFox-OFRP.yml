@@ -99,7 +99,7 @@ jobs:
         cd ${{ inputs.DEVICE_PATH }}
         echo "COMMIT_ID=$(git rev-parse HEAD)" >> $GITHUB_ENV
 
-    - name: Apply vibrator FF fallback fix
+    - name: Apply vibrator FF fallback Patch
       run: |
         set -euo pipefail
         sudo apt-get install -y patch
@@ -107,7 +107,14 @@ jobs:
         patch -p1 --fuzz=5 < "${{ env.ORANGEFOX_ROOT }}/${{ inputs.DEVICE_PATH }}/patches/0001-events-cpp-ff-vibrator.patch"
         echo "Patched events.cpp successfully"
 
-    - name: Apply graphics_drm.cpp fix
+    - name: Apply flashlight Patch
+      run: |
+        set -euo pipefail
+        cd "${{ env.ORANGEFOX_ROOT }}/bootable/recovery"
+        patch -p1 --fuzz=5 < "${{ env.ORANGEFOX_ROOT }}/${{ inputs.DEVICE_PATH }}/patches/0001-action-cpp-sprd-flash-flashlight-ofox.patch"
+        echo "Patched action.cpp successfully"
+
+    - name: Apply DRM patch
       run: |
         curl -fL "https://raw.githubusercontent.com/kyros70/android_bootable_recovery/android-12.1/minuitwrp/graphics_drm.cpp" \
           -o "${{ env.ORANGEFOX_ROOT }}/bootable/recovery/minuitwrp/graphics_drm.cpp"
@@ -157,7 +164,7 @@ jobs:
           ${{ env.OUTPUT_DIR }}/OrangeFox*.tar
           ${{ env.OUTPUT_DIR }}/OrangeFox*.zip
           ${{ env.OUTPUT_DIR }}/ramdisk-recovery.*
-        name: Unofficial OrangeFox for ${{ inputs.DEVICE_NAME }} // ${{ env.BUILD_DATE }}
+        name: OrangeFox for ${{ inputs.DEVICE_NAME }} (Unofficial)
         tag_name: ${{ github.run_id }}
         body: |
           Build: ${{ inputs.MANIFEST_BRANCH }}
