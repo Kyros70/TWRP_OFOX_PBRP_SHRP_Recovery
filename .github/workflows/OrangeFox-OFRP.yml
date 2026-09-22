@@ -127,8 +127,11 @@ jobs:
         curl -fL "https://raw.githubusercontent.com/kyros70/android_bootable_recovery/android-12.1/minuitwrp/graphics_drm.cpp" \
           -o "${{ env.ORANGEFOX_ROOT }}/bootable/recovery/minuitwrp/graphics_drm.cpp"
         echo "Patched graphics_drm.cpp: $(wc -l < ${{ env.ORANGEFOX_ROOT }}/bootable/recovery/minuitwrp/graphics_drm.cpp) lines"
+
+    - name: Set maintainer picture
+      run: cp $GITHUB_WORKSPACE/OrangeFox/fox_12.1/device/chinoe/M5A/patches/maintainer.png $GITHUB_WORKSPACE/OrangeFox/fox_12.1/bootable/recovery/gui/theme/portrait_hdpi/images/Default/About/maintainer.png
     
-    - name: Building OrangeFox
+    - name: Build OrangeFox
       run: |
         pushd ${{ env.ORANGEFOX_ROOT }}
         set +e
