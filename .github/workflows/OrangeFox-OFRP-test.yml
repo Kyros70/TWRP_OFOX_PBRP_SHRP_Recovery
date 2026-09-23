@@ -72,7 +72,7 @@ jobs:
       
     - name: Build Environment
       run: |
-        sudo apt install aria2 -y
+        sudo apt install aria2  -y
         git clone https://gitlab.com/OrangeFox/misc/scripts.git
         cd scripts
         sudo bash setup/android_build_env.sh
@@ -169,23 +169,24 @@ jobs:
             echo "::warning::The zip file isn't present but make sure the image is from only after 100% completion in build stage"
         fi
 
+    - name: Compress recovery with xz -9e
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y flex bison bc cpio libssl-dev xz-utils
+        xz -9e -k -c /home/runner/work/TWRP_OFOX_PBRP_SHRP_Recovery/TWRP_OFOX_PBRP_SHRP_Recovery/OrangeFox/fox_12.1/out/target/product/M5A/OrangeFox-R12.0_2-Unofficial-M5A.img > /home/runner/work/TWRP_OFOX_PBRP_SHRP_Recovery/TWRP_OFOX_PBRP_SHRP_Recovery/OrangeFox/fox_12.1/out/target/product/M5A/OrangeFox-R12.0_2-Unofficial-M5A.img.xz
+
     - name: Upload to Release
-      if: env.CHECK_IMG_IS_OK == 'true'
       uses: softprops/action-gh-release@master
       with:
         files: |
-          ${{ env.OUTPUT_DIR }}/OrangeFox*.img
-          ${{ env.OUTPUT_DIR }}/OrangeFox*.tar
+          ${{ env.OUTPUT_DIR }}/OrangeFox*.img.xz
+          ${{ env.OUTPUT_DIR }}/*.img.xz
           ${{ env.OUTPUT_DIR }}/OrangeFox*.zip
-          ${{ env.OUTPUT_DIR }}/ramdisk-recovery.*
+          ${{ env.OUTPUT_DIR }}/OrangeFox*.img
         name: OrangeFox for ${{ inputs.DEVICE_NAME }} (Unofficial)
         tag_name: ${{ github.run_id }}
         body: |
           Build: ${{ inputs.MANIFEST_BRANCH }}
-          Device: [Device Tree/Branch](${{ inputs.DEVICE_TREE }}/tree/${{ inputs.DEVICE_TREE_BRANCH }})
-          Commit: Most recent [commit](${{ inputs.DEVICE_TREE }}/commit/${{ env.COMMIT_ID }}) during building.
-          MD5 (img): ${{ env.MD5_IMG }}
-          MD5 (zip): ${{ env.MD5_ZIP }}
         prerelease: true
 
     - name: Run LDCheck
