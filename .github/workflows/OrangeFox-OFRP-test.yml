@@ -18,7 +18,7 @@ on:
       DEVICE_TREE_BRANCH:
         description: 'Custom Recovery Tree Branch (use master if default)'
         required: true
-        default: 'OFRP'
+        default: 'OFRP2'
       DEVICE_NAME:
         description: 'Specify your Device Codename' # As is, just like your PRODUCT_DEVICE in your device tree.
         required: true
@@ -127,6 +127,17 @@ jobs:
         curl -fL "https://raw.githubusercontent.com/kyros70/android_bootable_recovery/android-12.1/minuitwrp/graphics_drm.cpp" \
           -o "${{ env.ORANGEFOX_ROOT }}/bootable/recovery/minuitwrp/graphics_drm.cpp"
         echo "Patched graphics_drm.cpp: $(wc -l < ${{ env.ORANGEFOX_ROOT }}/bootable/recovery/minuitwrp/graphics_drm.cpp) lines"
+
+    - name: Apply theme scaling patches
+      run: |
+        set -euo pipefail
+        sudo apt-get install -y patch
+        cd "${{ env.ORANGEFOX_ROOT }}"
+        for p in "${{ env.ORANGEFOX_ROOT }}/${{ inputs.DEVICE_PATH }}/patches/"*rescale*.patch "${{ env.ORANGEFOX_ROOT }}/${{ inputs.DEVICE_PATH }}/patches/0001-set-native-canvas-M5A.patch"; do
+          echo "Applying $(basename "$p")"
+          patch -p1 --fuzz=5 < "$p"
+        done
+        echo "Theme scaling patches applied"
 
     - name: Set maintainer picture
       run: cp $GITHUB_WORKSPACE/OrangeFox/fox_12.1/device/chinoe/M5A/patches/maintainer.png $GITHUB_WORKSPACE/OrangeFox/fox_12.1/bootable/recovery/gui/theme/portrait_hdpi/images/Default/About/maintainer.png
