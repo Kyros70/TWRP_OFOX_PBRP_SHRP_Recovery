@@ -131,6 +131,13 @@ jobs:
     - name: Rescale theme (720x1612)
       run: python3 "${{ env.ORANGEFOX_ROOT }}/${{ inputs.DEVICE_PATH }}/patches/rescale_theme.py" "${{ env.ORANGEFOX_ROOT }}"
 
+    - name: verify ui.xml
+      run: |
+        echo "=== ui.xml resolution line ==="
+        grep -n "resolution" "${{ env.ORANGEFOX_ROOT }}/bootable/recovery/gui/theme/portrait_hdpi/ui.xml"
+        echo "=== searching for ANY other ui.xml files in the tree ==="
+        find "${{ env.ORANGEFOX_ROOT }}" -name "ui.xml" 2>/dev/null
+
     - name: Set maintainer picture
       run: cp $GITHUB_WORKSPACE/OrangeFox/fox_12.1/device/chinoe/M5A/patches/maintainer.png $GITHUB_WORKSPACE/OrangeFox/fox_12.1/bootable/recovery/gui/theme/portrait_hdpi/images/Default/About/maintainer.png
     
