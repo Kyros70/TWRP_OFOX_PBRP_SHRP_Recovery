@@ -138,11 +138,6 @@ jobs:
         echo "=== searching for ANY other ui.xml files in the tree ==="
         find "${{ env.ORANGEFOX_ROOT }}" -name "ui.xml" 2>/dev/null
 
-    - name: Locate screen_original_h assignment
-      run: |
-        grep -rn "screen_original_h" "$ORANGEFOX_ROOT"/bootable/recovery/ 2>/dev/null
-        grep -rln "SetValue.*screen_original" "$ORANGEFOX_ROOT"/bootable/recovery/ 2>/dev/null
-
     - name: Set maintainer picture
       run: cp $GITHUB_WORKSPACE/OrangeFox/fox_12.1/device/chinoe/M5A/patches/maintainer.png $GITHUB_WORKSPACE/OrangeFox/fox_12.1/bootable/recovery/gui/theme/portrait_hdpi/images/Default/About/maintainer.png
     
