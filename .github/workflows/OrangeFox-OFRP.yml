@@ -167,12 +167,19 @@ jobs:
             echo "::warning::The zip file isn't present but make sure the image is from only after 100% completion in build stage"
         fi
 
+    - name: Compress image
+      if: env.CHECK_IMG_IS_OK == 'true'
+      run: |
+        cd "${{ env.OUTPUT_DIR }}"
+        xz -9e -T0 -k -v -f -c vendor_boot.img > vendor_boot.img.xz
+
     - name: Upload to Release
       if: env.CHECK_IMG_IS_OK == 'true'
       uses: softprops/action-gh-release@master
       with:
         files: |
           ${{ env.OUTPUT_DIR }}/OrangeFox*.img
+          ${{ env.OUTPUT_DIR }}/vendor_boot.img.xz
           ${{ env.OUTPUT_DIR }}/OrangeFox*.tar
           ${{ env.OUTPUT_DIR }}/OrangeFox*.zip
           ${{ env.OUTPUT_DIR }}/ramdisk-recovery.*
