@@ -129,9 +129,12 @@ jobs:
         popd
       
     - name: Clone Device Tree
+      env:
+        PAT: ${{ secrets.PAT }}
       run: |
+        test -n "$PAT" || { echo "PAT secret is empty"; exit 1; }
         pushd android-recovery
-        git clone "https://${{ secrets.PAT }}@github.com/Kyros70/android_device_freeyond_m5a_recovery" -b ${{ inputs.DEVICE_TREE_BRANCH }} ./${{ inputs.DEVICE_PATH }}
+        git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$PAT" | base64 -w0)" clone https://github.com/Kyros70/android_device_freeyond_m5a-recovery -b ${{ inputs.DEVICE_TREE_BRANCH }} ./${{ inputs.DEVICE_PATH }}
         cd ${{ inputs.DEVICE_PATH }}
         echo "COMMIT_ID=$(git rev-parse HEAD)" >> $GITHUB_ENV
         popd
