@@ -108,10 +108,10 @@ jobs:
 
     - name: Install Git-Repo
       run: |
-        mkdir ~/bin
-        curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
-        chmod a+x ~/bin/repo
-        sudo ln -sf ~/bin/repo /usr/bin/repo
+        curl -fL https://storage.googleapis.com/git-repo-downloads/repo -o /tmp/repo
+        sudo install -m 0755 /tmp/repo /usr/local/bin/repo
+        sudo ln -sf /usr/local/bin/repo /usr/bin/repo
+        repo --version | head -n 3
 
     - name: Initialize Repo
       run: |
