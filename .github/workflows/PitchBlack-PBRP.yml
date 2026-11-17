@@ -203,12 +203,25 @@ jobs:
             echo "::warning::The zip file isn't present but make sure the image is from only after 100% completion in build stage"
         fi
 
+    - name: Compress image
+      if: env.CHECK_IMG_IS_OK == 'true'
+      run: |
+        cd "${{ env.OUTPUT_DIR }}"
+        img_file=$(find . -maxdepth 1 -name "vendor_boot.img" -print -quit)
+        [ -n "$img_file" ] || img_file=$(find . -maxdepth 1 -name "*vendor*.img" -print -quit)
+        if [ -n "$img_file" ]; then
+            xz -9e -T0 -k -v -f -c "$img_file" > "${img_file#./}.xz"
+        else
+            echo "::warning::No vendor image found to compress"
+        fi
+
     - name: Upload to Release
       if: env.CHECK_IMG_IS_OK == 'true'
       uses: softprops/action-gh-release@master
       with:
         files: |
           ${{ env.OUTPUT_DIR }}/*vendor*.img
+          ${{ env.OUTPUT_DIR }}/*vendor*.img.xz
           ${{ env.OUTPUT_DIR }}/*.img
           ${{ env.OUTPUT_DIR }}/*.zip
           ${{ env.OUTPUT_DIR }}/ramdisk-recovery.*

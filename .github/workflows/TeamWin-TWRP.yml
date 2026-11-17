@@ -175,6 +175,18 @@ jobs:
       run: |
         echo "BUILD_DATE=$(date +%Y%m%d)" >> $GITHUB_ENV
       
+    - name: Compress image
+      if: success()
+      run: |
+        cd "android-recovery/out/target/product/${{ inputs.DEVICE_NAME }}"
+        img_file=$(find . -maxdepth 1 -name "vendor_boot.img" -print -quit)
+        [ -n "$img_file" ] || img_file=$(find . -maxdepth 1 -name "*vendor*.img" -print -quit)
+        if [ -n "$img_file" ]; then
+            xz -9e -T0 -k -v -f -c "$img_file" > "${img_file#./}.xz"
+        else
+            echo "::warning::No vendor image found to compress"
+        fi
+
     - name: Upload to Release
       if: success()
       uses: softprops/action-gh-release@master
