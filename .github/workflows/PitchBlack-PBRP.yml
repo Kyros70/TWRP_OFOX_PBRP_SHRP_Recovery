@@ -80,10 +80,25 @@ jobs:
 
     - name: Prepare the environment
       run: |
-        sudo add-apt-repository universe
-        sudo apt update
-        sudo apt -y upgrade
-        sudo apt -y install gperf gcc-multilib gcc-10-multilib g++-multilib g++-10-multilib libc6-dev lib32ncurses5-dev x11proto-core-dev libx11-dev tree lib32z-dev libgl1-mesa-dev libxml2-utils xsltproc bc ccache lib32readline-dev lib32z1-dev liblz4-tool libncurses5-dev libsdl1.2-dev libwxgtk3.0-gtk3-dev libxml2 lzop pngcrush schedtool squashfs-tools imagemagick libbz2-dev lzma ncftp qemu-user-static libstdc++-10-dev libtinfo5 libgflags-dev libncurses5 python3
+        sudo add-apt-repository -y universe
+        sudo apt-get update
+        sudo apt-get -y upgrade
+        PKGS="gperf gcc-multilib gcc-10-multilib g++-multilib g++-10-multilib libc6-dev lib32ncurses-dev lib32ncurses5-dev x11proto-core-dev libx11-dev tree lib32z-dev libgl1-mesa-dev libxml2-utils xsltproc bc ccache lib32readline-dev lib32z1-dev liblz4-tool libncurses-dev libncurses5-dev libsdl1.2-dev libwxgtk3.2-dev libwxgtk3.0-gtk3-dev libxml2 lzop pngcrush schedtool squashfs-tools imagemagick libbz2-dev lzma ncftp qemu-user-static libstdc++-10-dev libgflags-dev python3"
+        INSTALL=""
+        for p in $PKGS; do
+            if apt-cache show "$p" > /dev/null 2>&1; then
+                INSTALL="$INSTALL $p"
+            else
+                echo "Skipping $p, not available on this Ubuntu release"
+            fi
+        done
+        sudo apt-get -y install $INSTALL
+        if ! dpkg -s libtinfo5 > /dev/null 2>&1; then
+            sudo sh -c 'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] http://archive.ubuntu.com/ubuntu jammy main universe" > /etc/apt/sources.list.d/jammy-legacy.list'
+            sudo apt-get update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/jammy-legacy.list -o Dir::Etc::sourceparts=/dev/null -o APT::Get::List-Cleanup=0 || true
+            (cd /tmp && apt-get download libtinfo5 libncurses5 && sudo dpkg -i libtinfo5_*.deb libncurses5_*.deb) || echo "::warning::Could not install legacy libtinfo5/libncurses5"
+            sudo rm -f /etc/apt/sources.list.d/jammy-legacy.list
+        fi
 
     - name: Install OpenJDK
       uses: actions/setup-java@v5
@@ -139,7 +154,10 @@ jobs:
     - name: Installing python2 for legacy builds
       if: env.CHECK_LEGACY_BRANCH == 'true'
       run: |
-        sudo apt-get install python2 python-is-python2
+        sudo apt-get install -y python2 python-is-python2 || {
+            echo "::error::python2 is not available on this runner image, legacy manifest branches need an ubuntu-22.04 runner"
+            exit 1
+        }
         
     - name: Fixed Missing Fonts
       run: |
