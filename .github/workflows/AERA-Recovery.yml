@@ -152,6 +152,16 @@ jobs:
         grep -q "open_drm" "$target" || { echo "::error::downloaded graphics_drm.cpp has no open_drm entry point"; exit 1; }
         echo "Patched graphics_drm.cpp: $(wc -l < "$target") lines"
 
+    - name: Allow the stock Android version in the CTS platform files
+      run: |
+        # build/make/core/tasks/cts.mk errors out when PLATFORM_VERSION or PLATFORM_VERSION_LAST_STABLE
+        # from the device tree is not listed in these files. The recovery does not use CTS at all.
+        cd "${{ env.AERA_ROOT }}/cts/tests/tests/os/assets"
+        for f in platform_versions.txt platform_releases.txt; do
+            grep -qx "13" "$f" || printf '\n13\n' >> "$f"
+        done
+        tail -n 3 platform_versions.txt platform_releases.txt
+
     - name: Building Image
       run: |
         cd android-recovery
