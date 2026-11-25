@@ -168,6 +168,10 @@ jobs:
         done
         tail -n 3 platform_versions.txt platform_releases.txt
 
+    - name: Speed up the adaptive-resolution software scaler
+      run: |
+        python3 -I tools/aera_fast_scale.py "${{ env.AERA_ROOT }}/bootable/recovery/aeraui/core/engine.cpp"
+
     - name: Building Image
       run: |
         cd android-recovery
